@@ -156,6 +156,14 @@ jobs:
         with:
           path: dist-release
 
+      # Prüfsummen für das Selbst-Update in der App (prüft jede geladene Datei per SHA-256)
+      - name: Prüfsummen erzeugen
+        run: |
+          cd dist-release
+          find . -type f \( -name '*.AppImage' -o -name '*.deb' -o -name '*.exe' \) -print0 \
+            | xargs -0 sha256sum | sed -E 's#  (.*/)?([^/]+)$#  \2#' > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
       - name: Patchnotes aus CHANGELOG.md holen
         id: notes
         run: |
@@ -188,6 +196,7 @@ jobs:
             dist-release/linux/**/*.AppImage
             dist-release/linux/**/*.deb
             dist-release/windows/**/*.exe
+            dist-release/SHA256SUMS.txt
           fail_on_unmatched_files: true
 
       # Beim echten Release: Test-Release derselben Version entfernen

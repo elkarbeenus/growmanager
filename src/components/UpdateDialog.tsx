@@ -1,10 +1,16 @@
 import { useEffect, useState } from 'react';
-import { ChevronDown, Download, Leaf, X } from 'lucide-react';
+import { ChevronDown, Download, Leaf, RefreshCw, X } from 'lucide-react';
 import { LinkFeedback } from '@/components/UpdateCard';
 import { APP_VERSION } from '@/lib/appInfo';
 import { t } from '@/lib/i18n';
 import { openExternal } from '@/lib/openExternal';
 import { closeUpdateDialog, skipVersion, useUpdateState } from '@/lib/updateCheck';
+import { getUpdatePlatform, installUpdate, restartAfterUpdate } from '@/lib/desktop';
+import { planUpdate, type UpdatePlan } from '@/lib/updateDecision';
+import { readableVersion } from '@/lib/versions';
+
+type Phase = { k: 'idle' } | { k: 'loading'; done: number; total: number } | { k: 'restarting' } | { k: 'error'; msg: string };
+const mb = (b: number) => (b / 1024 / 1024).toFixed(b > 100 * 1024 * 1024 ? 0 : 1);
 
 /** Patchnotes aus dem Release (Markdown) als einfache Liste anzeigen. */
 function notesToLines(md: string): string[] {
@@ -28,8 +34,23 @@ export default function UpdateDialog() {
   const [failed, setFailed] = useState(false);
   const [typing, setTyping] = useState(true);
   const [expanded, setExpanded] = useState(false);
+  const [plan, setPlan] = useState<UpdatePlan>({ kind: 'none' });
+  const [phase, setPhase] = useState<Phase>({ k: 'idle' });
+  const busy = phase.k === 'loading' || phase.k === 'restarting';
 
   const visible = dialogOpen && status.state === 'available';
+  const release = status.state === 'available' ? status.release : null;
+
+  // Kann diese Installation sich selbst aktualisieren (AppImage / Windows-Setup)?
+  useEffect(() => {
+    if (!release) return;
+    let alive = true;
+    void getUpdatePlatform().then((platform) => alive && setPlan(planUpdate(APP_VERSION, release, platform)));
+    return () => {
+      alive = false;
+    };
+  }, [release]);
+
   useEffect(() => {
     if (!visible) return;
     setTyping(true);
@@ -41,15 +62,31 @@ export default function UpdateDialog() {
 
   useEffect(() => {
     if (!visible) return;
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && closeUpdateDialog();
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && !busy && closeUpdateDialog();
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [visible]);
+  }, [visible, busy]);
 
   if (!visible || status.state !== 'available') return null;
   const rel = status.release;
   const lines = notesToLines(rel.notes);
   const highlights = lines.slice(0, 3).map(headline);
+
+  const runUpdate = async () => {
+    if (plan.kind !== 'auto') return;
+    setPhase({ k: 'loading', done: 0, total: plan.asset.size });
+    try {
+      await installUpdate({ url: plan.asset.url, fileName: plan.asset.name, sumsUrl: plan.sums.url }, (done, total) =>
+        setPhase({ k: 'loading', done, total: total || plan.asset.size })
+      );
+      setPhase({ k: 'restarting' });
+      setTimeout(() => {
+        restartAfterUpdate().catch((e) => setPhase({ k: 'error', msg: String((e as Error)?.message ?? e) }));
+      }, 900);
+    } catch (e) {
+      setPhase({ k: 'error', msg: String((e as Error)?.message ?? e) });
+    }
+  };
 
   return (
     <div
@@ -70,11 +107,11 @@ export default function UpdateDialog() {
           <div className="flex-1 min-w-0 leading-tight">
             <div className="text-[13px] font-semibold text-white">growmanager</div>
             <div className="text-[11px] text-ink-400 tabular-nums" data-testid="update-versions">
-              v{APP_VERSION} → <span className="text-primary-300 font-semibold">v{rel.version}</span>
+              v{readableVersion(APP_VERSION)} → <span className="text-primary-300 font-semibold">v{readableVersion(rel.version)}</span>
             </div>
           </div>
           <span className="text-[11px] text-ink-500">{t('jetzt', 'now')}</span>
-          <button type="button" onClick={closeUpdateDialog} className="h-7 w-7 -mr-1 rounded-full flex items-center justify-center text-ink-500 hover:text-white hover:bg-ink-800" aria-label={t('Schließen', 'Close')}>
+          <button type="button" onClick={closeUpdateDialog} disabled={busy} className="disabled:opacity-30 h-7 w-7 -mr-1 rounded-full flex items-center justify-center text-ink-500 hover:text-white hover:bg-ink-800" aria-label={t('Schließen', 'Close')}>
             <X size={15} />
           </button>
         </div>
@@ -90,7 +127,7 @@ export default function UpdateDialog() {
           ) : (
             <>
               <div className="max-w-[92%] rounded-[1.2rem] rounded-bl-md bg-gradient-to-br from-led-500 to-led-600 px-3.5 py-2.5 text-white shadow-glow-led animate-bubble-in">
-                <p className="text-[15px] font-semibold leading-snug">{t(`Version ${rel.version} ist da 🌱`, `Version ${rel.version} is here 🌱`)}</p>
+                <p className="text-[15px] font-semibold leading-snug">{t(`Version ${readableVersion(rel.version)} ist da 🌱`, `Version ${readableVersion(rel.version)} is here 🌱`)}</p>
                 {highlights.length > 0 && (
                   <ul className="mt-1 space-y-0.5 text-[13px] leading-snug text-white/90">
                     {highlights.map((h, i) => (
@@ -122,12 +159,50 @@ export default function UpdateDialog() {
                   )}
                 </div>
               )}
+              {phase.k === 'loading' && (
+                <div className="max-w-[92%] rounded-[1.2rem] rounded-bl-md bg-ink-800 px-3.5 py-2.5 animate-bubble-in" data-testid="update-progress">
+                  <div className="flex justify-between text-[13px] text-ink-200 tabular-nums">
+                    <span>{t('Lädt das Update …', 'Downloading the update …')}</span>
+                    <span>{phase.total ? `${Math.min(100, Math.round((phase.done / phase.total) * 100))} %` : `${mb(phase.done)} MB`}</span>
+                  </div>
+                  <div className="mt-2 h-1.5 rounded-full bg-ink-700 overflow-hidden">
+                    <div className="h-full gm-spectrum transition-[width] duration-200" style={{ width: `${phase.total ? Math.min(100, (phase.done / phase.total) * 100) : 15}%` }} />
+                  </div>
+                  {phase.total > 0 && (
+                    <div className="mt-1 text-[11px] text-ink-500 tabular-nums">
+                      {mb(phase.done)} / {mb(phase.total)} MB
+                    </div>
+                  )}
+                </div>
+              )}
+              {phase.k === 'restarting' && (
+                <div className="max-w-[92%] rounded-[1.2rem] rounded-bl-md bg-ink-800 px-3.5 py-2.5 text-[13px] text-ink-100 animate-bubble-in" data-testid="update-restarting">
+                  {t('Geprüft und installiert ✓ – growmanager startet neu …', 'Verified and installed ✓ – growmanager is restarting …')}
+                </div>
+              )}
+              {phase.k === 'error' && (
+                <div className="max-w-[92%] rounded-[1.2rem] rounded-bl-md bg-error-500/15 border border-error-500/30 px-3.5 py-2.5 text-[13px] text-error-200 animate-bubble-in" data-testid="update-error">
+                  {t('Update hat nicht geklappt: ', 'Update failed: ')}
+                  {phase.msg}
+                </div>
+              )}
             </>
           )}
         </div>
 
         {/* Antworten */}
-        <div className="mt-3.5 flex flex-wrap items-center gap-2 px-1">
+        <div className={`mt-3.5 flex flex-wrap items-center gap-2 px-1 ${busy ? 'hidden' : ''}`}>
+          {plan.kind === 'auto' && (
+            <button
+              type="button"
+              data-testid="update-install"
+              onClick={() => void runUpdate()}
+              className="flex items-center gap-1.5 h-9 px-4 rounded-full text-sm font-semibold text-ink-950 bg-primary-400 hover:bg-primary-300"
+            >
+              <RefreshCw size={15} />
+              {phase.k === 'error' ? t('Nochmal versuchen', 'Try again') : t('Jetzt aktualisieren', 'Update now')}
+            </button>
+          )}
           <button
             type="button"
             data-testid="update-download"
@@ -137,10 +212,15 @@ export default function UpdateDialog() {
                 closeUpdateDialog();
               } else setFailed(true);
             }}
-            className="flex items-center gap-1.5 h-9 px-4 rounded-full text-sm font-semibold text-ink-950 bg-primary-400 hover:bg-primary-300"
+            className={
+              plan.kind === 'auto'
+                ? 'flex items-center gap-1.5 h-9 px-3 rounded-full text-sm font-medium text-ink-200 bg-ink-850 hover:bg-ink-800 border border-ink-700'
+                : 'flex items-center gap-1.5 h-9 px-4 rounded-full text-sm font-semibold text-ink-950 bg-primary-400 hover:bg-primary-300'
+            }
+            title={plan.kind === 'auto' ? t('Release-Seite öffnen', 'Open release page') : undefined}
           >
             <Download size={15} />
-            {t('Herunterladen', 'Download')}
+            {plan.kind === 'auto' ? t('Seite', 'Page') : t('Herunterladen', 'Download')}
           </button>
           <button type="button" data-testid="update-later" onClick={closeUpdateDialog} className="h-9 px-4 rounded-full text-sm font-medium text-ink-200 bg-ink-850 hover:bg-ink-800 border border-ink-700">
             {t('Später', 'Later')}
@@ -163,7 +243,9 @@ export default function UpdateDialog() {
           </div>
         )}
         <p className="mt-2.5 px-1 text-[11px] text-ink-500 leading-relaxed">
-          {t('Neue Datei laden und die alte ersetzen – deine Daten bleiben erhalten.', 'Download the new file and replace the old one – your data is kept.')}
+          {plan.kind === 'auto'
+            ? t('Lädt die neue Version, prüft sie (SHA-256) und startet neu – deine Daten bleiben erhalten.', 'Downloads the new version, verifies it (SHA-256) and restarts – your data is kept.')
+            : t('Neue Datei laden und die alte ersetzen – deine Daten bleiben erhalten.', 'Download the new file and replace the old one – your data is kept.')}
         </p>
       </div>
     </div>

@@ -112,6 +112,11 @@ export function describePhaseDuration(
  * Ein Grow gilt als "geplant", wenn er noch nicht geerntet ist und sein frühester
  * Meilenstein in der Zukunft liegt – oder wenn noch gar kein Datum gesetzt ist.
  */
+/** Läuft gerade: gestartet und noch nicht geerntet. */
+export function isActiveGrow(grow: Grow): boolean {
+  return currentPhase(grow).key !== 'harvested' && !isPlanned(grow);
+}
+
 export function isPlanned(grow: Grow): boolean {
   const m = grow.milestones;
   const today = todayStr();

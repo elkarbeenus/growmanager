@@ -3,6 +3,10 @@
 // Offline oder bei Fehlern passiert nichts (kein Fehler-Popup).
 import { useSyncExternalStore } from 'react';
 import { APP_VERSION } from '@/lib/appInfo';
+import type { ReleaseAsset } from './updateDecision.ts';
+import { compareVersions, cleanVersion, parseVersion as parse } from './versions.ts';
+
+export { compareVersions, cleanVersion };
 
 export const REPO = 'elkarbeenus/growmanager';
 export const RELEASES_PAGE = `https://github.com/${REPO}/releases`;
@@ -16,6 +20,7 @@ export interface ReleaseInfo {
   url: string; // Seite zum Herunterladen
   notes: string; // Patchnotes (kann leer sein)
   publishedAt?: string;
+  assets?: ReleaseAsset[]; // angehängte Dateien (für das Selbst-Update)
 }
 
 export type UpdateStatus =
@@ -25,34 +30,6 @@ export type UpdateStatus =
   | { state: 'available'; release: ReleaseInfo; checkedAt: number }
   | { state: 'error'; message: string };
 
-// ---- Versionen vergleichen ----
-
-/** Zerlegt „v1.10.2-beta.1“ in Zahlen [1,10,2] und Zusatz „beta.1“. */
-function parse(v: string): { nums: number[]; pre: string } | null {
-  const m = String(v).trim().replace(/^v/i, '').match(/^(\d+(?:\.\d+)*)(?:-([0-9A-Za-z.-]+))?/);
-  if (!m) return null;
-  return { nums: m[1].split('.').map((n) => parseInt(n, 10)), pre: m[2] ?? '' };
-}
-
-/** >0 wenn a neuer ist als b, <0 wenn älter, 0 wenn gleich. Ungültige Versionen gelten als „älter“. */
-export function compareVersions(a: string, b: string): number {
-  const pa = parse(a);
-  const pb = parse(b);
-  if (!pa && !pb) return 0;
-  if (!pa) return -1;
-  if (!pb) return 1;
-  const len = Math.max(pa.nums.length, pb.nums.length);
-  for (let i = 0; i < len; i++) {
-    const d = (pa.nums[i] ?? 0) - (pb.nums[i] ?? 0);
-    if (d !== 0) return d > 0 ? 1 : -1;
-  }
-  // 1.9.0-beta ist älter als 1.9.0
-  if (pa.pre && !pb.pre) return -1;
-  if (!pa.pre && pb.pre) return 1;
-  return pa.pre === pb.pre ? 0 : pa.pre > pb.pre ? 1 : -1;
-}
-
-export const cleanVersion = (v: string) => String(v).trim().replace(/^v/i, '');
 
 // ---- Einstellungen (lokal gespeichert) ----
 
@@ -126,13 +103,22 @@ async function getJson(path: string): Promise<{ status: number; body: unknown }>
 export async function fetchLatestRelease(): Promise<ReleaseInfo | null> {
   const rel = await getJson('/releases/latest');
   if (rel.status === 200 && rel.body && typeof rel.body === 'object') {
-    const b = rel.body as { tag_name?: string; html_url?: string; body?: string; published_at?: string };
+    const b = rel.body as {
+      tag_name?: string;
+      html_url?: string;
+      body?: string;
+      published_at?: string;
+      assets?: { name?: string; browser_download_url?: string; size?: number }[];
+    };
     if (b.tag_name && parse(b.tag_name)) {
       return {
         version: cleanVersion(b.tag_name),
         url: b.html_url || RELEASES_PAGE,
         notes: (b.body ?? '').trim(),
         publishedAt: b.published_at,
+        assets: (b.assets ?? [])
+          .filter((a) => a.name && a.browser_download_url)
+          .map((a) => ({ name: String(a.name), url: String(a.browser_download_url), size: Number(a.size) || 0 })),
       };
     }
   }

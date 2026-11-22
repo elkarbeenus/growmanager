@@ -1,6 +1,6 @@
 # growmanager
 
-**Current version: 0.5.1** · [Download the latest release](https://github.com/elkarbeenus/growmanager/releases/latest)
+**Current version: 0.5.2** · [Download the latest release](https://github.com/elkarbeenus/growmanager/releases/latest)
 
 **Your personal grow manager – plan every grow, track nutrients, costs and yield, and keep everything on your own device.**
 
@@ -84,7 +84,8 @@ The classic palettes are based on the freely licensed (MIT) colour schemes of th
 - The app **remembers your layout** (tab, open grow, collapsed sections, scroll position, window size) and asks to make a backup when you close it with unsaved changes.
 - Optional **hardware acceleration** on Linux for smooth scrolling, with automatic fallback to safe mode.
 - A short **guided tour** explains where to find what – the sidebar, the header buttons, themes and every tab.
-- **Update notice** as a small message at the top when a new version is out. It runs once and can be switched off or restarted at any time. Hint cards can be dismissed.
+- **Auto update**: a small message at the top when a new version is out – one click updates and restarts.
+- Nutrient batches can be **edited** afterwards; only running grows are offered when mixing. It runs once and can be switched off or restarted at any time. Hint cards can be dismissed.
 - English and German, liters and gallons.
 - Dark interface for use in low light.
 
@@ -95,7 +96,11 @@ Ready-made builds are attached to each release:
 - **Linux / SteamOS:** AppImage (and .deb)
 - **Windows:** setup `.exe`
 
-Go to **[Releases](https://github.com/elkarbeenus/growmanager/releases)** and download the latest version. The app tells you on start when a new version is available.
+Go to **[Releases](https://github.com/elkarbeenus/growmanager/releases)** and download the latest version once.
+
+### Updates
+
+From 0.5.2 on, growmanager **updates itself**: on start it checks the latest release; if there is a newer one, a message appears at the top with **Update now**. One click downloads the new AppImage or Windows setup, verifies it against `SHA256SUMS.txt` from the release, replaces the old version and restarts – your data stays where it is. Set `GROWMANAGER_NO_UPDATE=1` to switch the check off (e.g. offline). Other installations (such as the .deb) get a download button instead.
 
 ## Versioning
 

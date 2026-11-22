@@ -142,3 +142,40 @@ export async function setRenderMode(mode: 'gpu' | 'safe'): Promise<boolean> {
 export function confirmRenderMode(): void {
   void invoke('confirm_render_mode').catch(() => {});
 }
+
+// ---- Selbst-Update (siehe src-tauri/src/updater.rs) ----
+
+/** 'appimage' | 'windows' | 'other' | 'off'; im Browser 'web'. */
+export async function getUpdatePlatform(): Promise<'appimage' | 'windows' | 'other' | 'off' | 'web'> {
+  if (!isDesktop()) return 'web';
+  try {
+    const p = String(await invoke('update_platform'));
+    return p === 'appimage' || p === 'windows' || p === 'off' ? p : 'other';
+  } catch {
+    return 'other'; // ältere Desktop-Version ohne Updater-Befehl
+  }
+}
+
+/** Update laden, prüfen und einspielen. onProgress bekommt geladene/gesamte Bytes. */
+export async function installUpdate(
+  args: { url: string; fileName: string; sumsUrl: string },
+  onProgress: (done: number, total: number) => void
+): Promise<void> {
+  const w = appWindow();
+  const un = w
+    ? await w.listen('update-progress', (e) => {
+        const p = (e as { payload?: { done?: number; total?: number } }).payload;
+        if (p) onProgress(Number(p.done) || 0, Number(p.total) || 0);
+      })
+    : null;
+  try {
+    await invoke('update_install', { url: args.url, fileName: args.fileName, sumsUrl: args.sumsUrl });
+  } finally {
+    un?.();
+  }
+}
+
+/** Neue Version starten, diese beenden. */
+export async function restartAfterUpdate(): Promise<void> {
+  await invoke('update_restart');
+}

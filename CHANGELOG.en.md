@@ -1,5 +1,11 @@
 # Patch notes – growmanager
 
+## v0.5.2
+- **In-app auto update:** when a new version is out, the message at the top offers **“Update now”**. One click downloads the new version, verifies it via SHA-256, replaces it and restarts the app – for the AppImage (Linux/SteamOS) and the Windows setup. Your data and settings are kept. Turn it off with `GROWMANAGER_NO_UPDATE=1`.
+- **Edit nutrient batches:** every batch in the history now has a pencil – correct date, amount, note, purpose, grow and schedule week without deleting and re-adding.
+- **Only active grows to pick:** when mixing (and when assigning in the history) only grows that are currently running are offered. Older entries keep their harvested grow.
+- Note: the auto update works from this version on. Please update from 0.5.1 to 0.5.2 by hand once more.
+
 ## v0.5.1
 - **11 dark themes:** grow themes – **Night tent** (default), **Green light** (very dim, for the dark period at the tent), **Sodium** (warm HPS amber), **Blurple** and **OLED black** – plus the classics **Catppuccin Mocha**, **Dracula**, **Tokyo Night**, **Nord**, **Gruvbox** and **Rosé Pine**.
 - **Switch instantly, no restart:** at the bottom of the sidebar (top right in small windows) or under **Settings → Appearance** with preview cards. The theme is saved per device.

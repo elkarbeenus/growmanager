@@ -33,7 +33,7 @@ import {
 import { storeImportedImages, clearImages } from '@/lib/imageStore';
 import { ensureSavedBaseline, hasUnsavedChanges, getLastSave } from '@/lib/saveState';
 import { usePersistentState, useScrollMemory, flushUi } from '@/lib/uiState';
-import { guardClose, closeWindowNow, isDesktop, restoreWindowState, trackWindowState, confirmRenderMode } from '@/lib/desktop';
+import { guardClose, closeWindowNow, isDesktop, restoreWindowState, trackWindowState, confirmRenderMode, getUpdatePlatform } from '@/lib/desktop';
 import { saveBackupToLastFolder, canSaveToLastFolder } from '@/lib/backupExport';
 import OrderClonesPanel from '@/components/OrderClonesPanel';
 import CloseDialog from '@/components/CloseDialog';
@@ -124,7 +124,18 @@ export default function App() {
   }, []);
 
   // Beim Start im Hintergrund nach einer neuen Version suchen (GitHub Releases)
-  useEffect(() => checkOnStartup(), []);
+  // Update-Prüfung beim Start (abschaltbar mit GROWMANAGER_NO_UPDATE=1 für Offline-Nutzung)
+  useEffect(() => {
+    let cancel = () => {};
+    let alive = true;
+    void getUpdatePlatform().then((p) => {
+      if (alive && p !== 'off') cancel = checkOnStartup();
+    });
+    return () => {
+      alive = false;
+      cancel();
+    };
+  }, []);
 
   // Beim Schließen fragen, wenn es Änderungen seit dem letzten Backup gibt
   const dataRef = useRef(data);

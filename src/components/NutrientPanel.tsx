@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { FlaskConical, Plus, Trash2, Droplets, StickyNote } from 'lucide-react';
+import { FlaskConical, Plus, Trash2, Droplets, StickyNote, Pencil } from 'lucide-react';
 import type { BatchPurpose, Grow, NutrientBatch } from '@/types';
 import DateField from './DateField';
 import ConfirmDialog from './ConfirmDialog';
 import { countsForTimer, daysBetweenLocal, localToday, timerGroups, RENEW_AFTER_DAYS, MAX_AGE_DAYS, type TimerGroup } from '@/lib/nutrientLogic';
-import { formatDate } from '@/lib/growLogic';
+import { formatDate, isActiveGrow } from '@/lib/growLogic';
+import Modal from './Modal';
 import { getFertilizers } from '@/lib/fertilizerData';
 import { useSelectedFertilizer } from '@/lib/fertilizerSelection';
 import { autoWeekIndex, inferGrowForDate, scheduleById } from '@/lib/fertUsage';
@@ -27,6 +28,9 @@ export default function NutrientPanel({ batches, grows = [], onChange }: Props) 
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const [toDelete, setToDelete] = useState<NutrientBatch | null>(null);
+  const [editing, setEditing] = useState<NutrientBatch | null>(null);
+  // Zur Auswahl stehen nur Grows, die gerade laufen (bereits zugeordnete bleiben sichtbar)
+  const activeGrows = grows.filter(isActiveGrow);
   const [purpose, setPurpose] = useState<BatchPurpose>('use');
 
   // Zuordnung zu einem Grow (optional – sonst automatisch über das Datum) und Schema-Woche
@@ -156,7 +160,7 @@ export default function NutrientPanel({ batches, grows = [], onChange }: Props) 
           </label>
         </div>
         <div className="grid sm:grid-cols-2 gap-3">
-          {grows.length > 0 && (
+          {activeGrows.length > 0 && (
             <div className="block">
               <span className="text-sm font-medium text-ink-200 mb-1.5 block">
                 {t('Für Grow', 'For grow')} <span className="text-ink-600 font-normal">(optional)</span>
@@ -170,7 +174,7 @@ export default function NutrientPanel({ batches, grows = [], onChange }: Props) 
                 }}
                 options={[
                   { value: '', label: `${t('Automatisch nach Datum', 'Automatic by date')}${!growId && selectedGrow ? ` (${selectedGrow.name})` : ''}` },
-                  ...grows.map((g) => ({ value: g.id, label: g.name })),
+                  ...activeGrows.map((g) => ({ value: g.id, label: g.name })),
                 ]}
               />
             </div>
@@ -269,6 +273,7 @@ export default function NutrientPanel({ batches, grows = [], onChange }: Props) 
                   <BatchAssign
                     batch={b}
                     grows={grows}
+                    activeGrows={activeGrows}
                     globalFert={globalFert}
                     schedules={schedules}
                     onGrow={(v) => assignGrow(b.id, v)}
@@ -284,19 +289,48 @@ export default function NutrientPanel({ batches, grows = [], onChange }: Props) 
                     </div>
                   )}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setToDelete(b)}
-                  title={t('Löschen', 'Delete')}
-                  className="p-2 rounded-lg text-ink-500 hover:text-error-400 hover:bg-ink-800 transition-colors"
-                >
-                  <Trash2 size={15} />
-                </button>
+                <div className="flex items-center gap-1 self-start">
+                  <button
+                    type="button"
+                    onClick={() => setEditing(b)}
+                    title={t('Bearbeiten', 'Edit')}
+                    aria-label={t('Ansatz bearbeiten', 'Edit batch')}
+                    data-testid="batch-edit"
+                    className="p-2 rounded-lg text-ink-500 hover:text-primary-300 hover:bg-ink-800"
+                  >
+                    <Pencil size={15} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setToDelete(b)}
+                    title={t('Löschen', 'Delete')}
+                    aria-label={t('Ansatz löschen', 'Delete batch')}
+                    data-testid="batch-delete"
+                    className="p-2 rounded-lg text-ink-500 hover:text-error-400 hover:bg-ink-800"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
         )}
       </div>
+
+      {editing && (
+        <BatchEditModal
+          batch={editing}
+          grows={grows}
+          activeGrows={activeGrows}
+          globalFert={globalFert}
+          schedules={schedules}
+          onClose={() => setEditing(null)}
+          onSave={(nb) => {
+            onChange(batches.map((b) => (b.id === nb.id ? nb : b)));
+            setEditing(null);
+          }}
+        />
+      )}
 
       <ConfirmDialog
         open={!!toDelete}
@@ -318,6 +352,7 @@ export default function NutrientPanel({ batches, grows = [], onChange }: Props) 
 function BatchAssign({
   batch,
   grows,
+  activeGrows,
   globalFert,
   schedules,
   onGrow,
@@ -326,6 +361,7 @@ function BatchAssign({
 }: {
   batch: NutrientBatch;
   grows: Grow[];
+  activeGrows: Grow[];
   globalFert: string;
   schedules: ReturnType<typeof getFertilizers>;
   onGrow: (v: string) => void;
@@ -362,7 +398,7 @@ function BatchAssign({
         onChange={onGrow}
         options={[
           { value: '', label: inferred ? `${t('Automatisch', 'Automatic')}: ${inferred.name}` : t('— kein Grow —', '— no grow —') },
-          ...grows.map((g) => ({ value: g.id, label: g.name })),
+          ...growChoices(activeGrows, explicit).map((g) => ({ value: g.id, label: g.name })),
         ]}
       />
       {schedule && (
@@ -417,5 +453,147 @@ function TimerStatus({ group, showName }: { group: TimerGroup; showName: boolean
         <div className={`h-full rounded-full transition-all ${barColor}`} style={{ width: `${needsRenew ? 100 : pct}%` }} />
       </div>
     </div>
+  );
+}
+
+/** Aktive Grows plus – falls schon zugeordnet – der bisherige Grow, damit ältere Einträge ihn behalten. */
+function growChoices(active: Grow[], current: Grow | null): Grow[] {
+  return current && !active.some((g) => g.id === current.id) ? [current, ...active] : active;
+}
+
+/** Vorhandenen Ansatz nachträglich korrigieren (Datum, Menge, Notiz, Verwendung, Grow, Woche). */
+function BatchEditModal({
+  batch,
+  grows,
+  activeGrows,
+  globalFert,
+  schedules,
+  onClose,
+  onSave,
+}: {
+  batch: NutrientBatch;
+  grows: Grow[];
+  activeGrows: Grow[];
+  globalFert: string;
+  schedules: ReturnType<typeof getFertilizers>;
+  onClose: () => void;
+  onSave: (b: NutrientBatch) => void;
+}) {
+  const [date, setDate] = useState<string | undefined>(batch.date);
+  const [amount, setAmount] = useState(fmtNum(litersToDisplay(batch.liters) ?? batch.liters, 2));
+  const [note, setNote] = useState(batch.note ?? '');
+  const [purpose, setPurpose] = useState<BatchPurpose>(batch.purpose === 'soak' ? 'soak' : 'use');
+  const [growId, setGrowId] = useState(batch.growId ?? '');
+  const [week, setWeek] = useState(batch.weekIndex !== undefined ? String(batch.weekIndex) : '');
+
+  const explicit = grows.find((g) => g.id === growId) ?? null;
+  const inferred = explicit ? null : date ? inferGrowForDate(date, grows) : null;
+  const grow = explicit ?? inferred;
+  const schedule = scheduleById(grow?.fertilizerId ?? globalFert, schedules);
+  const autoIdx = grow && schedule && date ? autoWeekIndex(grow, schedule, date) : null;
+  const num = Number(amount.trim().replace(',', '.'));
+  const valid = !!date && amount.trim() !== '' && Number.isFinite(num) && num > 0;
+
+  const save = () => {
+    if (!valid || !date) return;
+    onSave({
+      ...batch,
+      date,
+      liters: displayToLiters(num) ?? num,
+      note: note.trim() || undefined,
+      purpose: purpose === 'soak' ? 'soak' : undefined,
+      growId: growId || undefined,
+      weekIndex: schedule && week !== '' && Number(week) < schedule.weeks.length ? Number(week) : undefined,
+    });
+  };
+
+  return (
+    <Modal open onClose={onClose} title={t('Ansatz bearbeiten', 'Edit batch')} subtitle={t('Korrigiere Datum, Menge oder Zuordnung.', 'Correct the date, amount or assignment.')} icon={<Pencil size={18} />}>
+      <div className="space-y-4" data-testid="batch-edit-modal">
+        <div className="grid sm:grid-cols-2 gap-3">
+          <DateField label={t('Datum des Anmischens', 'Date mixed')} value={date} onChange={setDate} />
+          <label className="block">
+            <span className="text-sm font-medium text-ink-200 flex items-center gap-1.5 mb-1.5">
+              <Droplets size={14} className="text-primary-400" />
+              {t('Menge', 'Amount')} <span className="text-ink-600 font-normal">· {volumeUnit()}</span>
+            </span>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              data-testid="batch-edit-amount"
+              className={inputCls}
+            />
+          </label>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div>
+            <span className="text-sm font-medium text-ink-200 mb-1.5 block">{t('Verwendung', 'Purpose')}</span>
+            <DarkSelect
+              testid="batch-edit-purpose"
+              value={purpose}
+              onChange={(v) => setPurpose(v === 'soak' ? 'soak' : 'use')}
+              options={[
+                { value: 'use', label: t('Gebrauch (Countdown)', 'Use (countdown)') },
+                { value: 'soak', label: t('Tränken (kein Countdown)', 'Soaking (no countdown)') },
+              ]}
+            />
+          </div>
+          {(activeGrows.length > 0 || explicit) && (
+            <div>
+              <span className="text-sm font-medium text-ink-200 mb-1.5 block">{t('Grow', 'Grow')}</span>
+              <DarkSelect
+                testid="batch-edit-grow"
+                value={growId}
+                onChange={(v) => {
+                  setGrowId(v);
+                  setWeek('');
+                }}
+                options={[
+                  { value: '', label: inferred ? `${t('Automatisch', 'Automatic')}: ${inferred.name}` : t('— kein Grow —', '— no grow —') },
+                  ...growChoices(activeGrows, grows.find((g) => g.id === batch.growId) ?? null).map((g) => ({ value: g.id, label: g.name })),
+                ]}
+              />
+            </div>
+          )}
+        </div>
+        {schedule && (
+          <div>
+            <span className="text-sm font-medium text-ink-200 mb-1.5 block">{t('Schema-Woche', 'Schedule week')}</span>
+            <DarkSelect
+              testid="batch-edit-week"
+              value={week}
+              onChange={setWeek}
+              options={[
+                { value: '', label: `${t('Woche automatisch', 'Week automatic')} (${autoIdx !== null ? schedule.weeks[autoIdx].label : '—'})` },
+                ...schedule.weeks.map((w, i) => ({ value: String(i), label: w.label })),
+              ]}
+            />
+          </div>
+        )}
+        <label className="block">
+          <span className="text-sm font-medium text-ink-200 flex items-center gap-1.5 mb-1.5">
+            <StickyNote size={14} className="text-ink-400" />
+            {t('Notiz', 'Note')}
+          </span>
+          <input value={note} onChange={(e) => setNote(e.target.value)} data-testid="batch-edit-note" className={inputCls} />
+        </label>
+        <div className="flex justify-end gap-2 pt-1">
+          <button type="button" onClick={onClose} className="px-4 py-2.5 rounded-xl text-sm font-medium text-ink-200 bg-ink-850 hover:bg-ink-800 border border-ink-700">
+            {t('Abbrechen', 'Cancel')}
+          </button>
+          <button
+            type="button"
+            onClick={save}
+            disabled={!valid}
+            data-testid="batch-edit-save"
+            className="px-4 py-2.5 rounded-xl text-sm font-semibold text-ink-950 bg-primary-400 hover:bg-primary-300 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {t('Änderungen speichern', 'Save changes')}
+          </button>
+        </div>
+      </div>
+    </Modal>
   );
 }

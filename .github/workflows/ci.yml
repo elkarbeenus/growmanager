@@ -25,7 +25,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Node-Pakete installieren
         run: npm install
@@ -35,6 +35,9 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      - name: Tests (Update-Entscheidung)
+        run: npm test
 
       - name: Web-Build
         run: npm run build

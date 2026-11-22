@@ -3,7 +3,7 @@
 // Die Version wird beim Build aus package.json übernommen (siehe vite.config.ts).
 import { t } from '@/lib/i18n';
 
-export const APP_VERSION: string = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '0.5.1';
+export const APP_VERSION: string = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '0.5.2';
 
 export const APP_NAME = 'growmanager';
 
@@ -20,6 +20,14 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '0.5.2',
+    items: [
+      { de: 'Auto-Update in der App: „Jetzt aktualisieren“ lädt die neue Version, prüft sie per SHA-256, ersetzt sie und startet neu – AppImage und Windows, Daten bleiben erhalten', en: 'In-app auto update: “Update now” downloads the new version, verifies it via SHA-256, replaces it and restarts – AppImage and Windows, data is kept' },
+      { de: 'Nährlösung: Ansätze lassen sich nachträglich bearbeiten (Datum, Menge, Notiz, Verwendung, Grow, Woche) – kein Löschen und Neuanlegen mehr', en: 'Nutrient solution: batches can be edited afterwards (date, amount, note, purpose, grow, week) – no more deleting and re-adding' },
+      { de: 'Nährlösung: Zur Auswahl stehen nur Grows, die gerade laufen; bereits zugeordnete bleiben erhalten', en: 'Nutrient solution: only grows that are currently running can be picked; existing assignments are kept' },
+    ],
+  },
   {
     version: '0.5.1',
     items: [

@@ -1,5 +1,11 @@
 # Patchnotes – growmanager
 
+## v0.5.2
+- **Auto-Update in der App:** Ist eine neue Version da, erscheint die Nachricht oben mit **„Jetzt aktualisieren“**. Ein Klick lädt die neue Version, prüft sie per SHA-256, ersetzt sie und startet die App neu – beim AppImage (Linux/SteamOS) und beim Windows-Setup. Deine Daten und Einstellungen bleiben erhalten. Abschaltbar mit `GROWMANAGER_NO_UPDATE=1`.
+- **Nährlösung bearbeiten:** Jeder Ansatz im Verlauf hat jetzt einen Stift – Datum, Menge, Notiz, Verwendung, Grow und Schema-Woche lassen sich korrigieren, ohne zu löschen und neu anzulegen.
+- **Nur aktive Grows zur Auswahl:** Beim Anmischen (und beim Zuordnen im Verlauf) stehen nur Grows, die gerade laufen. Ältere Einträge behalten ihren geernteten Grow.
+- Hinweis: Das Auto-Update funktioniert ab dieser Version. Von 0.5.1 auf 0.5.2 bitte noch einmal von Hand aktualisieren.
+
 ## v0.5.1
 - **11 dunkle Themes:** eigene Grow-Themes – **Nachtzelt** (Standard), **Grünlicht** (sehr gedämpft, für die Dunkelphase am Zelt), **Natriumdampf** (warmes HPS-Bernstein), **Blurple** und **OLED-Schwarz** – sowie die Klassiker **Catppuccin Mocha**, **Dracula**, **Tokyo Night**, **Nord**, **Gruvbox** und **Rosé Pine**.
 - **Sofort wechseln, ohne Neustart:** unten in der Seitenleiste (im kleinen Fenster oben rechts) oder unter **Einstellungen → Erscheinungsbild** mit Vorschau-Karten. Das Theme wird pro Gerät gespeichert.

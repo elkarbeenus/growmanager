@@ -2,6 +2,8 @@
 
 use std::path::PathBuf;
 
+mod updater;
+
 /// Datei, in der die Darstellungsart (Grafikbeschleunigung an/aus) gespeichert wird.
 /// Linux: ~/.config/growmanager/render-mode · Windows: %APPDATA%\growmanager\render-mode
 fn render_mode_path() -> Option<PathBuf> {
@@ -91,7 +93,14 @@ fn main() {
 
     tauri::Builder::default()
         .manage(StartMode(start_mode.to_string()))
-        .invoke_handler(tauri::generate_handler![get_render_mode, set_render_mode, confirm_render_mode])
+        .invoke_handler(tauri::generate_handler![
+            get_render_mode,
+            set_render_mode,
+            confirm_render_mode,
+            updater::update_platform,
+            updater::update_install,
+            updater::update_restart
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
