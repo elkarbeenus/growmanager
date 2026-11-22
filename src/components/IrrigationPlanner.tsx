@@ -137,11 +137,11 @@ function DayBar({ r }: { r: PlanResult }) {
         ))}
       </div>
       <div className="relative h-5 mt-1 text-[11px] text-ink-500 tabular-nums">
-        <span className="absolute -translate-x-1/2 flex items-center gap-1" style={{ left: pos(r.lightsOn) }}>
+        <span className="absolute flex items-center gap-1" style={{ left: pos(r.lightsOn) }}>
           <Sun size={11} className="text-warning-300" />
           {formatTime(r.lightsOn)}
         </span>
-        <span className="absolute -translate-x-1/2" style={{ left: pos(r.lightsOff) }}>
+        <span className="absolute -translate-x-full flex items-center gap-1" style={{ left: pos(r.lightsOff) }}>
           {formatTime(r.lightsOff)}
         </span>
       </div>
@@ -166,7 +166,7 @@ function TimerCard({ b, title, hint }: { b: TimerBlock; title: string; hint: str
   const row = (label: string, value: string, testid?: string) => (
     <div className="flex items-baseline justify-between gap-3 py-1.5 border-b border-ink-800/80 last:border-0">
       <span className="text-xs text-ink-400">{label}</span>
-      <span className="font-display text-base font-bold text-white tabular-nums" data-testid={testid}>
+      <span className="font-display text-base font-bold text-white tabular-nums text-right whitespace-nowrap" data-testid={testid}>
         {value}
       </span>
     </div>
@@ -182,7 +182,8 @@ function TimerCard({ b, title, hint }: { b: TimerBlock; title: string; hint: str
       {row(t('Endzeit', 'End time'), formatTime(b.end), `timer-${b.key}-end`)}
       {row(t('Laufzeit (Min:Sek)', 'Run time (min:sec)'), formatDuration(b.runSeconds), `timer-${b.key}-run`)}
       {row(t('Pause (Min:Sek)', 'Pause (min:sec)'), formatDuration(b.pauseSeconds), `timer-${b.key}-pause`)}
-      {row(t('Wiederholungen', 'Repeats'), `${b.shots}× (${t('alle', 'every')} ${b.intervalMin} min)`, `timer-${b.key}-shots`)}
+      {row(t('Wiederholungen', 'Repeats'), `${b.shots}×`, `timer-${b.key}-shots`)}
+      {row(t('Abstand', 'Interval'), `${b.intervalMin} min`, `timer-${b.key}-interval`)}
     </div>
   );
 }
