@@ -78,6 +78,8 @@ export interface AppSettings {
   devices?: Device[]; // weitere Geräte: Abluft, Clip-Fan, Controller, Ent-/Befeuchter
 }
 
+import type { IrrigationPlan } from '@/lib/irrigation';
+
 export interface Grow {
   id: string;
   name: string;
@@ -97,6 +99,7 @@ export interface Grow {
   fertilizerId?: string; // gewähltes Düngeschema (z. B. 'athena') für die Verbrauchsauswertung
   plantCount?: number; // 1–10 Pflanzen pro Grow (Daten wie Start etc. gelten für alle gleich)
   costs?: CostEntry[]; // Kosten dieses Grows
+  irrigation?: IrrigationPlan; // Bewässerungsplan (Crop Steering light)
   createdAt: string;
 }
 

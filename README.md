@@ -1,6 +1,6 @@
 # growmanager
 
-**Current version: 0.5.2** · [Download the latest release](https://github.com/elkarbeenus/growmanager/releases/latest)
+**Current version: 0.5.3** · [Download the latest release](https://github.com/elkarbeenus/growmanager/releases/latest)
 
 **Your personal grow manager – plan every grow, track nutrients, costs and yield, and keep everything on your own device.**
 
@@ -85,7 +85,8 @@ The classic palettes are based on the freely licensed (MIT) colour schemes of th
 - Optional **hardware acceleration** on Linux for smooth scrolling, with automatic fallback to safe mode.
 - A short **guided tour** explains where to find what – the sidebar, the header buttons, themes and every tab.
 - **Auto update**: a small message at the top when a new version is out – one click updates and restarts.
-- Nutrient batches can be **edited** afterwards; only running grows are offered when mixing. It runs once and can be switched off or restarted at any time. Hint cards can be dismissed.
+- Nutrient batches can be **edited** afterwards; only running grows are offered when mixing.
+- **Irrigation plan per grow (crop steering light):** pump run time per shot, P1/P2 timer values (min:sec), last shot, target dryback and water per day – from your medium, field capacity and dripper flow, vegetative or generative. It runs once and can be switched off or restarted at any time. Hint cards can be dismissed.
 - English and German, liters and gallons.
 - Dark interface for use in low light.
 

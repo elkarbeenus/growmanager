@@ -3,7 +3,7 @@
 // Die Version wird beim Build aus package.json übernommen (siehe vite.config.ts).
 import { t } from '@/lib/i18n';
 
-export const APP_VERSION: string = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '0.5.2';
+export const APP_VERSION: string = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '0.5.3';
 
 export const APP_NAME = 'growmanager';
 
@@ -20,6 +20,15 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '0.5.3',
+    items: [
+      { de: 'Neu: Bewässerungsplan pro Grow (Crop Steering light) – Pumpen-Laufzeit pro Shot, P1/P2-Zeitplan, letzter Shot, Ziel-Dryback und Wasser pro Tag', en: 'New: irrigation plan per grow (crop steering light) – pump run time per shot, P1/P2 schedule, last shot, target dryback and water per day' },
+      { de: 'Medium frei wählbar (Steinwolle-Würfel, -Blöcke, -Matten, Töpfe, eigene Maße oder Liter); Durchfluss pro Tropfer × Tropfer pro Pflanze oder für die ganze Anlage', en: 'Medium freely selectable (rockwool cubes, blocks, slabs, pots, custom size or litres); flow per dripper × drippers per plant or for the whole system' },
+      { de: 'Timer-Werte in Minuten:Sekunden zum Abtippen (z. B. Mars-Hydro-App), Tagesverlauf als Grafik und „Plan kopieren“', en: 'Timer values in minutes:seconds to copy over (e.g. the Mars Hydro app), day view as a graphic and “Copy plan”' },
+      { de: 'Steuerung vegetativ ↔ generativ per Schieber oder automatisch nach Phase; Feinjustieren von Shot-Größe und Dryback', en: 'Steering vegetative ↔ generative with a slider or automatically by phase; fine-tune shot size and dryback' },
+    ],
+  },
   {
     version: '0.5.2',
     items: [

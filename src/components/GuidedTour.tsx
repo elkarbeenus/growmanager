@@ -100,6 +100,9 @@ function steps(): Step[] {
       tab: 'shotsize',
       title: 'Shot Size',
       intro: t('Crop-Steering-Rechner: Mediumgröße eingeben, Shotgröße für vegetativ und generativ in % und mL.', 'Crop steering calculator: enter the medium size to get the shot size for vegetative and generative in % and mL.'),
+      bullets: [
+        t('Den kompletten Bewässerungsplan (Pumpen-Laufzeit, Shots, Uhrzeiten, Timer-Werte) gibt es pro Grow – im Grow unter „Bewässerung“.', 'The complete irrigation plan (pump run time, shots, times, timer values) lives in each grow – under “Irrigation”.'),
+      ],
     },
     {
       id: 'order',

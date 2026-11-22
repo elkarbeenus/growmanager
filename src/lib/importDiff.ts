@@ -56,6 +56,7 @@ function growDetails(a: Grow, b: Grow): string[] {
   if (a.color !== b.color) d.push(t('Farbe', 'Color'));
   if ((a.plantCount ?? 1) !== (b.plantCount ?? 1)) d.push(t('Pflanzenanzahl', 'Plant count'));
   if ((a.fertilizerId ?? '') !== (b.fertilizerId ?? '')) d.push(t('Dünger', 'Fertilizer'));
+  if (JSON.stringify(a.irrigation ?? null) !== JSON.stringify(b.irrigation ?? null)) d.push(t('Bewässerungsplan', 'Irrigation plan'));
   if (!same(a.milestones, b.milestones)) d.push(t('Meilensteine', 'Milestones'));
   if (!same(a.drying, b.drying)) d.push(t('Trocknung/Ernte', 'Drying/harvest'));
 

@@ -1,4 +1,5 @@
 import type { AppData, AppSettings, CostEntry, Device, DeviceUsage, DimProfile, Grow, GrowImage, NutrientBatch } from '@/types';
+import { normalizePlan } from '@/lib/irrigation';
 import { t } from '@/lib/i18n';
 import { markSaved } from '@/lib/saveState';
 import { normalizeImageMap } from '@/lib/imageStore';
@@ -179,6 +180,7 @@ export function normalizeGrow(g: Partial<Grow>): Grow {
     fertilizerId: typeof g.fertilizerId === 'string' && g.fertilizerId ? g.fertilizerId : undefined,
     plantCount: normalizePlantCount(g.plantCount),
     costs: normalizeCosts(g.costs),
+    irrigation: normalizePlan(g.irrigation),
     createdAt: g.createdAt ?? new Date().toISOString(),
   };
 }

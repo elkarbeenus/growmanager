@@ -83,6 +83,12 @@ export default function ShotSizeCalculator() {
             'Enter the size of your growing medium – the calculator returns the shot size for vegetative and generative steering in % and mL.'
           )}
         </p>
+        <p className="text-xs text-led-300 mt-2" data-testid="shotsize-planner-hint">
+          {t(
+            'Tipp: Pumpen-Laufzeit, Anzahl Shots, Uhrzeiten und Timer-Werte berechnet der Bewässerungsplan in jedem Grow (Abschnitt „Bewässerung“).',
+            'Tip: pump run time, number of shots, times and timer values are worked out by the irrigation plan in every grow (section “Irrigation”).'
+          )}
+        </p>
       </div>
 
       <div className="rounded-2xl border border-ink-800 bg-ink-900/60 p-5">

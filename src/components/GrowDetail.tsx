@@ -1,3 +1,4 @@
+import IrrigationPlanner from './IrrigationPlanner';
 import { useState } from 'react';
 import {
   ArrowLeft,
@@ -251,13 +252,14 @@ export default function GrowDetail({
       <div className="mb-5 space-y-3">
         <HintCard id="grow-detail-v1" title={t('So findest du alles in diesem Grow', 'Finding your way around this grow')}>
           {t(
-            'Die Pflanzenanzahl stellst du ganz oben im Bereich „Meilensteine“ ein. Weiter unten findest du Tagebuch, Trocknung & Ernte, Nährlösung & Dünger-Verbrauch sowie Kosten & Ertrag. Der Button „PDF-Bericht“ oben rechts zeigt dir den Bericht erst in einer Vorschau. Mit den Chips hier springst du direkt zu jedem Bereich.',
-            'You set the number of plants at the top of the “Milestones” section. Further down you will find the journal, drying & harvest, nutrient solution & fertilizer usage and costs & yield. The “PDF report” button at the top right shows the report in a preview first. Use the chips here to jump straight to any section.'
+            'Die Pflanzenanzahl stellst du ganz oben im Bereich „Meilensteine“ ein. Weiter unten findest du den Bewässerungsplan, Tagebuch, Trocknung & Ernte, Nährlösung & Dünger-Verbrauch sowie Kosten & Ertrag. Der Button „PDF-Bericht“ oben rechts zeigt dir den Bericht erst in einer Vorschau. Mit den Chips hier springst du direkt zu jedem Bereich.',
+            'You set the number of plants at the top of the “Milestones” section. Further down you will find the irrigation plan, the journal, drying & harvest, nutrient solution & fertilizer usage and costs & yield. The “PDF report” button at the top right shows the report in a preview first. Use the chips here to jump straight to any section.'
           )}
         </HintCard>
         <nav className="flex flex-wrap gap-2" data-testid="jump-bar" aria-label={t('Schnellsprung', 'Quick jump')}>
           {[
             ['sec-milestones', t('Meilensteine & Pflanzen', 'Milestones & plants')],
+            ['sec-irrigation', t('Bewässerung', 'Irrigation')],
             ['sec-journal', t('Tagebuch', 'Journal')],
             ['sec-images', t('Bilder', 'Photos')],
             ['sec-drying', t('Trocknung & Ernte', 'Drying & harvest')],
@@ -290,6 +292,11 @@ export default function GrowDetail({
           onChange={saveMilestones}
           onPlantCountChange={(n) => onUpdateGrow({ ...grow, plantCount: n })}
         />
+      </div>
+
+      {/* Bewässerungsplan */}
+      <div id="sec-irrigation" className="scroll-mt-36 rounded-3xl border border-ink-800 bg-ink-900/60 p-5 sm:p-6 mb-5">
+        <IrrigationPlanner grow={grow} onChange={(plan) => onUpdateGrow({ ...grow, irrigation: plan })} />
       </div>
 
       {/* Journal */}

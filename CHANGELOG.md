@@ -1,5 +1,15 @@
 # Patchnotes – growmanager
 
+## v0.5.3
+- **Neu: Bewässerungsplan pro Grow (Crop Steering light).** Im Grow unter **„Bewässerung“**: Medium wählen, Feldkapazität eintragen (Sensorwert bei vollgesättigtem Medium, z. B. 88 %), Durchfluss messen (z. B. 100 mL in 30 Sekunden an einem Tropfer) und Tropfer pro Pflanze angeben. Der Plan berechnet:
+  - **Pumpen-Laufzeit pro Shot** in Minuten:Sekunden, Shot-Größe pro Pflanze und Menge aus dem Tank für alle Pflanzen
+  - **Timer 1 (P1, Auffüllen morgens)** und bei vegetativer Steuerung **Timer 2 (P2, Halten)** mit Startzeit, Endzeit, Laufzeit, Pause und Wiederholungen – zum direkten Eintragen in den Zyklus-Timer (z. B. Mars-Hydro-App)
+  - letzter Shot vor Licht aus, **Ziel-Sensorwert morgens** (Dryback) und **Wasser pro Tag**
+- **Medium frei wählbar:** Steinwolle-Würfel und -Blöcke (4×4 bis 20×20, inkl. 15×15×15 und Hugo), Matten (Pflanzen pro Matte), Töpfe oder eigene Maße/Liter.
+- **Steuerung** per Schieber von vegetativ bis generativ – oder automatisch nach Phase (Wachstum vegetativ, Stretch generativ, Blüte ausgewogen, Reife leicht generativ). Shot-Größe und Dryback lassen sich feinjustieren.
+- Tagesverlauf als Grafik und Knopf **„Plan kopieren“** (z. B. zum Abtippen am Handy).
+- Der Shot-Size-Reiter weist auf den neuen Plan hin; die Tour erwähnt ihn.
+
 ## v0.5.2
 - **Auto-Update in der App:** Ist eine neue Version da, erscheint die Nachricht oben mit **„Jetzt aktualisieren“**. Ein Klick lädt die neue Version, prüft sie per SHA-256, ersetzt sie und startet die App neu – beim AppImage (Linux/SteamOS) und beim Windows-Setup. Deine Daten und Einstellungen bleiben erhalten. Abschaltbar mit `GROWMANAGER_NO_UPDATE=1`.
 - **Nährlösung bearbeiten:** Jeder Ansatz im Verlauf hat jetzt einen Stift – Datum, Menge, Notiz, Verwendung, Grow und Schema-Woche lassen sich korrigieren, ohne zu löschen und neu anzulegen.

@@ -1,5 +1,15 @@
 # Patch notes – growmanager
 
+## v0.5.3
+- **New: irrigation plan per grow (crop steering light).** In each grow under **“Irrigation”**: pick the medium, enter the field capacity (sensor value at full saturation, e.g. 88 %), measure the flow (e.g. 100 mL in 30 seconds at one dripper) and set drippers per plant. The plan works out:
+  - **pump run time per shot** in minutes:seconds, shot size per plant and the amount from the tank for all plants
+  - **timer 1 (P1, morning ramp-up)** and, when steering vegetatively, **timer 2 (P2, maintenance)** with start, end, run time, pause and repeats – ready for a cycle timer (e.g. the Mars Hydro app)
+  - last shot before lights off, **target sensor value in the morning** (dryback) and **water per day**
+- **Free choice of medium:** rockwool cubes and blocks (4×4 to 20×20, incl. 15×15×15 and Hugo), slabs (plants per slab), pots or a custom size/volume.
+- **Steering** with a slider from vegetative to generative – or automatically by phase (veg vegetative, stretch generative, bloom balanced, ripening slightly generative). Shot size and dryback can be fine-tuned.
+- Day view as a graphic and a **“Copy plan”** button.
+- The shot size tab points to the new plan; the tour mentions it.
+
 ## v0.5.2
 - **In-app auto update:** when a new version is out, the message at the top offers **“Update now”**. One click downloads the new version, verifies it via SHA-256, replaces it and restarts the app – for the AppImage (Linux/SteamOS) and the Windows setup. Your data and settings are kept. Turn it off with `GROWMANAGER_NO_UPDATE=1`.
 - **Edit nutrient batches:** every batch in the history now has a pencil – correct date, amount, note, purpose, grow and schedule week without deleting and re-adding.
